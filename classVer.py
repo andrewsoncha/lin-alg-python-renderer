@@ -1,15 +1,8 @@
 import cv2
 import numpy as np
 import math
-
-def projectPoint(point, planeBasis):
-    transposedBasis = planeBasis.transpose()
-    #print(transposedBasis)
-    middle = np.matmul(transposedBasis, planeBasis)
-    #print(middle)
-    invMiddle = np.linalg.inv(middle)
-    #print(invMiddle)
-    return np.matmul(np.matmul(invMiddle, transposedBasis), point)
+import rayTracer
+import linAlg
 
 def get3dPoints(rad, angle, zDist):
     coorList = []

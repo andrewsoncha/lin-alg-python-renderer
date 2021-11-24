@@ -3,7 +3,7 @@ import math
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
-class vector:
+class vector(object):
     def __init__(self, coorList, asdf = None):  # coorList : list
         self.coorList = coorList
         self.dimension = len(coorList)
@@ -80,7 +80,7 @@ class vector:
             raise Exception("can not product with non-matrix object")
 
     def outer_product(vector1, vector2):
-        if vector1.dimension is not 3 or vector2.dimension is not 3:
+        if vector1.dimension != 3 or vector2.dimension != 3:
             raise Exception("outer product parameters have a dimension that is not 3")
         resultCoor = [vector1.coorList[1]*vector2.coorList[2]-vector1.coorList[2]*vector2.coorList[1],
                       vector1.coorList[2]*vector2.coorList[0]-vector1.coorList[0]*vector2.coorList[2],
@@ -97,7 +97,7 @@ class vector:
         return msg
 
 
-class matrix:
+class matrix(object):
     # SW : I wrote this code assuming that the columnList is an array of vectors
     def __init__(self, columnList, dimension=None):
         if dimension:
@@ -309,32 +309,39 @@ class matrix:
         return msg
 
 
-class Point:  # represents a point in a 3-dimensional space
+class point:  # represents a point in a 3-dimensional space
     # currently the Point class only has one field memeber: Vec3 coordinates. Might add other field members like color later
     def __init__(self, coorList, y_coor=None, z_coor=None):
         if isinstance(y_coor, float) or isinstance(y_coor, int):
-            self.coordinates = vector([coorList, y_coor, z_coor])
+            self.coorVec = vector([coorList, y_coor, z_coor])
         else:
-            self.coordinates = vector(coorList)
+            print('coorList:'+str(coorList))
+            self.coorVec = vector(coorList)
 
     def getX(self):
-        return self.coordinates.get_element(0)
+        return self.coorVec.coorList[0]
 
     def getY(self):
-        return self.coordinates.get_element(1)
+        return self.coorVec.coorList[1]
 
     def getZ(self):
-        return self.coordinates.get_element(2)
+        return self.coorVec.coorList[2]
 
 
 # represents a line in a 3-dimensional space. Consists of one starting point(Point class) and a normalized 3d direction vector(Vec3 class)
-class Line:
+class line:
     def __init__(self, startingPoint, direction):
         self.startingPoint = startingPoint
         if direction.norm != 1:
             self.direction = direction.normalize()
         else:
             self.direction = direction
+
+    @classmethod
+    def fromTwoPoints(cls, startingPoint, endPoint):
+        diffVec = endPoint-startingPoint
+        direction = diffVec.normalize()
+        return cls(startingPoint, direction)
 
     def getDirX(self):
         return self.direction.get_element(0)
@@ -377,11 +384,14 @@ class plane:
         #point : point
         #vector1 : vector
         #vector2 : vector
+        print('plane init')
+        print('vector1:'+str(vector1))
+        print('vector2:'+str(vector2))
         self.point = point
         self.v1 = vector1
         self.v2 = vector2
-        self.normalVec = vector.outer_product(v1, v2)
-        self.normalVec = self.norm.normalize()
+        self.normalVec = vector.outer_product(vector1, vector2)
+        self.normalVec = self.normalVec.normalize()
 
     def is_intersection(self, line):
         #line : Line
@@ -418,22 +428,34 @@ class plane:
 
 
 class face(plane):#face of the cube or one of the walls
-    def __init___(self, pointList, image=None):#pointList must be ordered as follows: Upper Left->Lower left->Lower Right->Upper Right
-        leftUp = pointList[0]
-        xAxis = pointList[1]-pointList[0]
-        yAxis = pointList[2]-pointList[0]
+    def __init__(self, pointList, image=None):#pointList must be ordered as follows: Upper Left->Lower left->Lower Right->Upper Right
+        print('face init')
+        leftUp = point(pointList[0])
+        xAxis = vector(pointList[1])-vector(pointList[0])
+        yAxis = vector(pointList[2])-vector(pointList[0])
         self.pointList = pointList
-        super(leftUp, xAxis.normalize(), yAxis.normalize())
+        print('leftUp:'+str(leftUp.coorVec))
+        print('xAxis:'+str(xAxis))
+        print('yAxis:'+str(yAxis))
+        super(face, self).__init__(leftUp, xAxis.normalize(), yAxis.normalize())
         self.width = xAxis.findNorm()
         self.height = yAxis.findNorm()
         self.image = image
     def getCoorColor(coor):
         if isinstance(image, np.array):
             return image[int(coor[0])][int(coor[1])]
+        else:
+            return np.array([125,125,125])
 
-class ray(Line):
+class ray(line):
     def __init__(self, startingPoint, direction):
-        super(startingPoint, direction)
+        super().__init__(startingPoint, direction)
+
+    @classmethod
+    def fromTwoPoints(cls, startingPoint, endPoint):
+        diffVec = endPoint-startingPoint
+        direction = diffVec.normalize()
+        super().__init__(startingPoint, direction)
     def intersect(faceObj):
         coor = faceObj.is_intersection(self)
         if coor == 0:
