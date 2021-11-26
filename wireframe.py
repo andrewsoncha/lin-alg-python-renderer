@@ -75,7 +75,11 @@ screenBasis = np.float32([[1,0],[0,1],[0,0]])
 planes = []
 
 angle = 0
-
+fps = 20
+width = 500
+height = 500
+fcc = cv2.VideoWriter_fourcc('H', '2', '5', '6')
+out = cv2.VideoWriter('wireframe result.mp4', fcc, fps, (width, height))
 
 while angle<math.pi*2:
     #print('\n\nangle:'+str(angle))
@@ -106,5 +110,7 @@ while angle<math.pi*2:
         finalImg = cv2.circle(finalImg, (int(i[3][0]), int(i[3][1])), 7, (0,0,255), -1)
     
     cv2.imshow('resultImg', finalImg)
+    out.write(finalImg.astype('uint8'))
     cv2.waitKey(1)
     angle+=math.pi/100
+out.release()

@@ -14,7 +14,10 @@ class point:  # represents a point in a 3-dimensional space
             self.coorVec = vector([coorList, y_coor, z_coor])
         else:
             print('coorList:'+str(coorList))
-            self.coorVec = vector(coorList)
+            if isinstance(coorList, vector):
+                self.coorVec = coorList
+            else:
+                self.coorVec = vector(coorList)
 
     def getX(self):
         return self.coorVec.coorList[0]
@@ -94,9 +97,9 @@ class plane:
 
     def is_intersection(self, line):
         #line : Line
-        print('ray:'+str(line.startingPoint.coorVec)+','+str(line.direction))
-        print('plane:'+str(self.originPoint.coorVec)+','+str(self.v1)+str(self.v2))
-        print('\n\n\n\n')
+        """print('ray:'+str(line.startingPoint.coorVec)+','+str(line.direction))
+        print('plane:'+str(self.originPoint.coorVec)+','+str(self.v1)+","+str(self.v2))
+        print('\n')"""
         x = self.originPoint.getX() - line.startingPoint.getX()
         y = self.originPoint.getY() - line.startingPoint.getY()
         z = self.originPoint.getZ() - line.startingPoint.getZ()
@@ -117,11 +120,13 @@ class plane:
         vec6 = vector(list)
         list = [vec4, vec5, vec6]
         mat_A = matrix(list, 9)
-        print('a:'+str(mat_A))
-        print('mat_A determinant:'+str(mat_A.getDeterminant()))
-        print('mat_A*inverse'+str(mat_A*mat_A.getInverseMatrix()))
+        """print('a:'+str(mat_A))
+        print('mat_A determinant:'+str(mat_A.getDeterminantNP()))
+        print('inverse:'+str(mat_A.getInverseMatrixNP()))
+        print('mat_A*inverse'+str(mat_A*mat_A.getInverseMatrixNP()))
+        print('mat_B:'+str(mat_B))"""
         if mat_A.getDeterminantNP() == 0:
-            print('determinant false')
+            #print('determinant false')
             return False
         else:
             #return list[the scalar coefficient of line, the coefficient of basis1, the coefficient of basis2]
@@ -145,26 +150,38 @@ class plane:
             return list
 
     def coorToVec(self, coorList):
-        return self.v1*coorList[0]+self.v2*coorList[1]
+        """print('v1:'+str(self.v1))
+        print(coorList[1])
+        print('v2:'+str(self.v2))
+        print(coorList[2])
+        print('v1*cL1='+str(self.v1*coorList[1]))
+        print('v2*cL2='+str(self.v2*coorList[2]))
+        print('sum='+str(self.v1*coorList[1]+self.v2*coorList[2]))"""
+        return self.originPoint.coorVec+self.v1*coorList[1]+self.v2*coorList[2]
 
 
 class face(plane):#face of the cube or one of the walls
-    def __init__(self, pointList, image=None):#pointList must be ordered as follows: Upper Left->Lower left->Lower Right->Upper Right
-        print('face init')
+    def __init__(self, pointList, num=0, image=None):#pointList must be ordered as follows: Upper Left->Lower left->Lower Right->Upper Right
+        #print('face init')
         leftUp = point(pointList[0])
         xAxis = vector(pointList[1])-vector(pointList[0])
-        yAxis = vector(pointList[2])-vector(pointList[0])
+        yAxis = vector(pointList[3])-vector(pointList[0])
+        self.num = num
         self.pointList = pointList
-        print('leftUp:'+str(leftUp.coorVec))
+        """print('leftUp:'+str(leftUp.coorVec))
         print('xAxis:'+str(xAxis))
-        print('yAxis:'+str(yAxis))
+        print('yAxis:'+str(yAxis))"""
         super(face, self).__init__(leftUp, xAxis.normalize(), yAxis.normalize())
         self.width = xAxis.findNorm()
         self.height = yAxis.findNorm()
+        print("width and height:"+str(self.width)+','+str(self.height)+')')
         self.image = image
+        #print('self.image type:'+str(type(self.image)))
     def getCoorColor(self, coor):
+        #print('self.image type:'+str(type(self.image)))
+        print('getCoorColor('+str(coor[0])+','+str(coor[1]))
         if isinstance(self.image, type(np.array(np.int32))):
-            return self.image[int(coor[0])][int(coor[1])]
+            return self.image[int(coor[0]/self.width*len(self.image))%len(self.image)][int(coor[1]/self.height*len(self.image[0]))%len(self.image[0])]
         else:
             return np.array([125,125,125])
 
@@ -192,7 +209,7 @@ class ray(line):
     def reflectRay(self, faceObj):
         coorList = faceObj.is_intersection(self)
         print('coorList:'+str(coorList))
-        newStartingPoint = self.startingPoint.coorVec+self.direction*coorList[0]
+        newStartingPoint = point(self.startingPoint.coorVec+self.direction*coorList[0])
         if newStartingPoint!=False:
             print('dot product:'+str(vector.dot_product(self.direction, faceObj.normalVec)))
             newDirection = -2*faceObj.normalVec*vector.dot_product(self.direction, faceObj.normalVec)+self.direction

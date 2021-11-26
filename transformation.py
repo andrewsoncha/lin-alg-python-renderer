@@ -23,14 +23,14 @@ def zRotatePlanes(length, angle, zDist):
     coorList = []
     rectPoints = []
     #point order: upper back left->clockwise->down back left->clockwise
-    rectPoints.append([-length/2+300, math.sqrt(2)*length/2*math.cos(angle+math.pi)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi)+zDist])
-    rectPoints.append([length/2+300, math.sqrt(2)*length/2*math.cos(angle+math.pi)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi)+zDist])
-    rectPoints.append([length/2+300, math.sqrt(2)*length/2*math.cos(angle+math.pi/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi/2)+zDist])
-    rectPoints.append([-length/2+300, math.sqrt(2)*length/2*math.cos(angle+math.pi/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi/2)+zDist])
-    rectPoints.append([-length/2+300, math.sqrt(2)*length/2*math.cos(angle+math.pi*3/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi*3/2)+zDist])
-    rectPoints.append([length/2+300, math.sqrt(2)*length/2*math.cos(angle+math.pi*3/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi*3/2)+zDist])
-    rectPoints.append([length/2+300, math.sqrt(2)*length/2*math.cos(angle)+30, math.sqrt(2)*length/2*math.sin(angle)+zDist])
-    rectPoints.append([-length/2+300, math.sqrt(2)*length/2*math.cos(angle)+30, math.sqrt(2)*length/2*math.sin(angle)+zDist])
+    rectPoints.append([-length/2, math.sqrt(2)*length/2*math.cos(angle+math.pi)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi)+zDist])
+    rectPoints.append([length/2, math.sqrt(2)*length/2*math.cos(angle+math.pi)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi)+zDist])
+    rectPoints.append([length/2, math.sqrt(2)*length/2*math.cos(angle+math.pi/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi/2)+zDist])
+    rectPoints.append([-length/2, math.sqrt(2)*length/2*math.cos(angle+math.pi/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi/2)+zDist])
+    rectPoints.append([-length/2, math.sqrt(2)*length/2*math.cos(angle+math.pi*3/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi*3/2)+zDist])
+    rectPoints.append([length/2, math.sqrt(2)*length/2*math.cos(angle+math.pi*3/2)+30, math.sqrt(2)*length/2*math.sin(angle+math.pi*3/2)+zDist])
+    rectPoints.append([length/2, math.sqrt(2)*length/2*math.cos(angle)+30, math.sqrt(2)*length/2*math.sin(angle)+zDist])
+    rectPoints.append([-length/2, math.sqrt(2)*length/2*math.cos(angle)+30, math.sqrt(2)*length/2*math.sin(angle)+zDist])
     
     coorList.append(np.float32([rectPoints[4], rectPoints[5], rectPoints[6], rectPoints[7]]))
     coorList.append(np.float32([rectPoints[0], rectPoints[3], rectPoints[7], rectPoints[4]]))
@@ -52,8 +52,6 @@ def projectPlane(points3d, screenBasis):
         orthoVec = i - projectedVec
         #print(orthoVec)
         dist = np.linalg.norm(orthoVec)
-        print('dist')
-        print(dist)
         if maxDist<dist:
             maxDist = dist
         #print(dist*projectedCoor)
@@ -71,6 +69,12 @@ def projectPlane(points3d, screenBasis):
 img = cv2.imread('diamond_ore.png', cv2.IMREAD_COLOR)
 cv2.imshow("hello", img)
 cv2.waitKey(1000)
+
+fps = 20
+width = 500
+height = 500
+fcc = cv2.VideoWriter_fourcc('H', '2', '5', '6')
+out = cv2.VideoWriter('transformation result.mp4', fcc, fps, (width, height))
 
 print(math.pi)
 print(math.cos(math.pi/2))
@@ -92,7 +96,7 @@ angle = 0
 cv2.waitKey(3000)
 while angle<math.pi*2:
     #print('\n\nangle:'+str(angle))
-    plane = zRotatePlanes(500,angle,1000)
+    plane = zRotatePlanes(500,angle,800)
     #print('get3dPoints')
     #print(points3d)
 
@@ -120,8 +124,6 @@ while angle<math.pi*2:
                 projectedPlanes[j] = tmpPlaneCoor
 
     for i in range(listLen):
-        print('dist '+str(i)+':'+str(planeDists[i]))
-        print('projectedPlanes '+str(i)+':'+str(projectedPlanes[i]))
         m = cv2.getPerspectiveTransform(originalPnts, projectedPlanes[i])
         resultImg = cv2.warpPerspective(img, m, dsize = (screenWidth, screenHeight))
         mask = cv2.warpPerspective(whiteImg, m, dsize = (screenWidth, screenHeight))
@@ -130,7 +132,6 @@ while angle<math.pi*2:
         masks.append(mask)
 
     finalImg = np.zeros((screenWidth, screenHeight,3))
-    print('listLen:'+str(listLen))
     for i in range(listLen):
         #for j in range(i, listLen):
         #    masks[i] = masks[i]-masks[j]
@@ -143,14 +144,9 @@ while angle<math.pi*2:
             mask_inv = cv2.bitwise_not(masks[i]*255)
             restImg = cv2.bitwise_and(mask_inv, finalImg)
             finalImg= restImg+projectedImgs[i]
-            cv2.imshow('img'+str(i), projectedImgs[i])
-            #cv2.waitKey(10)
-            cv2.imshow('restImg'+str(i), restImg)
-            cv2.imshow('mask_inv'+str(i), mask_inv)
-            cv2.imshow('masks'+str(i), masks[i]*255)
-        cv2.imshow('finalImg'+str(i), finalImg)
 
     cv2.imshow('resultImg', finalImg)
+    out.write(finalImg)
     cv2.waitKey(1)
     angle+=math.pi/100
-
+out.release()

@@ -3,11 +3,11 @@ from random import random
 import numpy as np
 
 line_point = linearAlgebra.point(0, 0, 0)
-line_vec = linearAlgebra.vector([1,0,1])
+line_vec = linearAlgebra.vector([-0.09901475429766744,-0.09901475429766744,0.9901475429766744])
 testLine = linearAlgebra.line(line_point, line_vec)
-plane_point = linearAlgebra.point(1,0,0)
-plane_basis1 = linearAlgebra.vector([1, 0, 0])
-plane_basis2 = linearAlgebra.vector([0,1,0])
+plane_point = linearAlgebra.point(-30,0,10)
+plane_basis1 = linearAlgebra.vector([0.7071067811865475,-0.7071067811865475,0.0]).normalize()
+plane_basis2 = linearAlgebra.vector([1,0,0])
 testPlane = linearAlgebra.plane(plane_point, plane_basis1, plane_basis2)
 print(testPlane.is_intersection(testLine))
 print('\n\n\n\n\n\n')
