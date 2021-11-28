@@ -13,7 +13,7 @@ class point:  # represents a point in a 3-dimensional space
         if isinstance(y_coor, float) or isinstance(y_coor, int):
             self.coorVec = vector([coorList, y_coor, z_coor])
         else:
-            print('coorList:'+str(coorList))
+            #print('coorList:'+str(coorList))
             if isinstance(coorList, vector):
                 self.coorVec = coorList
             else:
@@ -161,25 +161,26 @@ class plane:
 
 
 class face(plane):#face of the cube or one of the walls
-    def __init__(self, pointList, num=0, image=None):#pointList must be ordered as follows: Upper Left->Lower left->Lower Right->Upper Right
+    def __init__(self, pointList, num=0, alpha=0.8, image=None):#pointList must be ordered as follows: Upper Left->Lower left->Lower Right->Upper Right
         #print('face init')
         leftUp = point(pointList[0])
         xAxis = vector(pointList[1])-vector(pointList[0])
         yAxis = vector(pointList[3])-vector(pointList[0])
         self.num = num
         self.pointList = pointList
+        self.alpha = alpha
         """print('leftUp:'+str(leftUp.coorVec))
         print('xAxis:'+str(xAxis))
         print('yAxis:'+str(yAxis))"""
         super(face, self).__init__(leftUp, xAxis.normalize(), yAxis.normalize())
         self.width = xAxis.findNorm()
         self.height = yAxis.findNorm()
-        print("width and height:"+str(self.width)+','+str(self.height)+')')
+        #print("width and height:"+str(self.width)+','+str(self.height)+')')
         self.image = image
         #print('self.image type:'+str(type(self.image)))
     def getCoorColor(self, coor):
         #print('self.image type:'+str(type(self.image)))
-        print('getCoorColor('+str(coor[0])+','+str(coor[1]))
+        #print('getCoorColor('+str(coor[0])+','+str(coor[1]))
         if isinstance(self.image, type(np.array(np.int32))):
             return self.image[int(coor[0]/self.width*len(self.image))%len(self.image)][int(coor[1]/self.height*len(self.image[0]))%len(self.image[0])]
         else:
@@ -208,10 +209,10 @@ class ray(line):
                 return point, coor
     def reflectRay(self, faceObj):
         coorList = faceObj.is_intersection(self)
-        print('coorList:'+str(coorList))
+        #print('coorList:'+str(coorList))
         newStartingPoint = point(self.startingPoint.coorVec+self.direction*coorList[0])
         if newStartingPoint!=False:
-            print('dot product:'+str(vector.dot_product(self.direction, faceObj.normalVec)))
+            #print('dot product:'+str(vector.dot_product(self.direction, faceObj.normalVec)))
             newDirection = -2*faceObj.normalVec*vector.dot_product(self.direction, faceObj.normalVec)+self.direction
             return ray(newStartingPoint, newDirection)
         else:

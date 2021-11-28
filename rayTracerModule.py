@@ -3,7 +3,7 @@ import cv2
 import linAlg
 class rayTracer:
 
-    def __init__(self, originPoint=[0,0,0], direction=[0,0,1], dist=5, resolution=[300,300, 3],depthLimit=5,alpha=0.8):
+    def __init__(self, originPoint=[0,0,0], direction=[0,0,1], dist=5, resolution=[300,300, 3],depthLimit=5):
         self.originPoint = linAlg.point(originPoint)
         rayList = []
         xAxisVec = linAlg.vector([0,-1,0])#todo: change it to be adaptive to the direction vector 
@@ -22,7 +22,6 @@ class rayTracer:
                 rayRowList.append(linAlg.ray(self.originPoint, endPoint))
             rayList.append(rayRowList)
         self.rayList = rayList
-        self.alpha = alpha
                 
     def render(self, objList):
         resultImg = np.zeros(self.resolution)
@@ -79,14 +78,14 @@ class rayTracer:
             reflectanceRay = ray.reflectRay(finalHitObj)
             color = finalHitObj.getCoorColor(coor)
             reflectCol = self.traceRay(reflectanceRay, objList, depth+1)
-            print('reflectCol:'+str(reflectCol[1]))
-            return finalHitObj.num, self.alpha*color+(1-self.alpha)*reflectCol[1]
-            print('finalHitObj.num:'+str(finalHitObj.num))
+            #print('reflectCol:'+str(reflectCol[1]))
+            return finalHitObj.num, i.alpha*color+(1-i.alpha)*reflectCol[1]
+            #print('finalHitObj.num:'+str(finalHitObj.num))
             #return finalHitObj.num, self.alpha*color
             #return color
         else:
             #print('ray did not hit anything')
             if ray.direction.coorList[1]>0:
-                return 0, np.array([200,200,200],np.float32)
+                return 0, np.array([0,0,0],np.float32)
             else:
-                return 0, np.array([30,30,30],np.float32)
+                return 0, np.array([255,255,255],np.float32)
